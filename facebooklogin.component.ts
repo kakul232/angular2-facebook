@@ -1,4 +1,4 @@
-import {Component, OnInit} from 'angular2/core';
+import {Component, OnInit,NgZone} from 'angular2/core';
 import {ROUTER_DIRECTIVES, Router} from "angular2/router";
 
 
@@ -11,8 +11,11 @@ declare const FB:any;
 })
 
 export class FacebookLoginComponent implements OnInit {
+    
+    name=""
+    isUser = false
 
-    constructor() {
+    constructor(private _ngZone: NgZone) {
         FB.init({
             appId      : 'your-app-id',
             cookie     : false,  // enable cookies to allow the server to access
@@ -23,7 +26,23 @@ export class FacebookLoginComponent implements OnInit {
     }
 
     onFacebookLoginClick() {
-        FB.login();
+             var self = this;
+        
+        FB.login(function(response) {
+            if (response.authResponse) {
+             console.log('Welcome!  Fetching your information.... ');
+             FB.api('/me', function(response) {
+                 self._ngZone.run(() => {
+				        self.name = response.name;
+				        self.isUser = true
+});
+               console.log('Good to see you, ' + response.name + '.');
+              
+             });
+            } else {
+             console.log('User cancelled login or did not fully authorize.');
+            }
+        });
     }
 
     statusChangeCallback(resp) {
